@@ -9,6 +9,7 @@ DWORD pid;
 
 
 
+//pointer  "server.dll"+00A0FE74 offset f4 150 44 8 18
 DWORD off1, off2, off3, off4, off5;
 DWORD baseAddress;
 char moduleName[] = "mono.dll";
@@ -57,33 +58,28 @@ int main() {
 	DWORD clientBase = dwGetModuleBaseAddr(_T(moduleName), pid);
 	
 
-	//reading memory
 
-	
+	DWORD newMoney;
 	DWORD moneyAddress;
-	DWORD newMoney, currentMoney;
+	DWORD currentMoney = 0;
 	
-	cout << "How much money do you want to have: ";
+	cout << "How much money do you want to add (4 bytes type): ";
 	cin >> newMoney;
-	while (1) {
-		//offset health
-		ReadProcessMemory(pHandle, (LPCVOID)(clientBase + 0x001F50AC), &baseAddress, sizeof(baseAddress), NULL);
-		ReadProcessMemory(pHandle, (LPCVOID)(baseAddress + 0xc4), &off1, sizeof(off1), NULL);
-		ReadProcessMemory(pHandle, (LPCVOID)(off1 + 0x50), &off2, sizeof(off2), NULL);
-		ReadProcessMemory(pHandle, (LPCVOID)(off2 + 0x2c), &off3, sizeof(off3), NULL);
-		ReadProcessMemory(pHandle, (LPCVOID)(off3 + 0x28), &off4, sizeof(off4), NULL);
+	//offset health
+	ReadProcessMemory(pHandle, (LPCVOID)(clientBase + 0x001F50AC), &baseAddress, sizeof(baseAddress), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(baseAddress + 0xc4), &off1, sizeof(off1), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(off1 + 0x50), &off2, sizeof(off2), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(off2 + 0x2c), &off3, sizeof(off3), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(off3 + 0x28), &off4, sizeof(off4), NULL);
 
-		moneyAddress = off4 + 0x18;
+	moneyAddress = off4 + 0x18;
 
-		ReadProcessMemory(pHandle, (LPCVOID)(moneyAddress), &currentMoney, sizeof(currentMoney), NULL);
+	//logic : get the amount we currently have, and then add the new money to it
+	ReadProcessMemory(pHandle, (LPCVOID)(moneyAddress), &currentMoney, 4, NULL);
+	newMoney += currentMoney;
 
-		cout << currentMoney;
-
-		WriteProcessMemory(pHandle, (LPVOID)(moneyAddress), &newMoney, sizeof(newMoney), 0);
-		ReadProcessMemory(pHandle, (LPCVOID)(moneyAddress), &currentMoney, 4, NULL);
-
-		cin.get();
-	}
+	WriteProcessMemory(pHandle, (LPVOID)(moneyAddress), &newMoney, sizeof(newMoney), 0);
+	
 	
 	return 0;
 
