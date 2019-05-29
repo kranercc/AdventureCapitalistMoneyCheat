@@ -9,17 +9,16 @@ DWORD pid;
 
 
 
-//pointer  "server.dll"+00A0FE74 offset f4 150 44 8 18
-DWORD off1, off2, off3, off4, off5;
-DWORD baseAddress;
-char moduleName[] = "mono.dll";
+DWORD64 off1, off2, off3, off4, off5;
+DWORD64 baseAddress;
+char moduleName[] = "mono-2.0-bdwgc.dll";
 
 int valueHealth;
 
 //scan modules find server and copy addrs
-DWORD dwGetModuleBaseAddr(TCHAR *lpszModuleName, DWORD procid) {
+DWORD64 dwGetModuleBaseAddr(TCHAR *lpszModuleName, DWORD64 procid) {
 	//temporary holder
-	DWORD baseAddrNow = 0;
+	DWORD64 baseAddrNow = 0;
 	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, procid);
 	MODULEENTRY32 moduleEntry32 = { 0 };
 	moduleEntry32.dwSize = sizeof(MODULEENTRY32);
@@ -29,11 +28,11 @@ DWORD dwGetModuleBaseAddr(TCHAR *lpszModuleName, DWORD procid) {
 		do {
 			if (_tcscmp(moduleEntry32.szModule, lpszModuleName) == 0) {
 
-				baseAddrNow = (DWORD)moduleEntry32.modBaseAddr;
+				baseAddrNow = (DWORD64)moduleEntry32.modBaseAddr;
 				break;
 
 			}
-			
+
 		} while (Module32Next(hSnapShot, &moduleEntry32));
 
 
@@ -48,39 +47,40 @@ using namespace std;
 int main() {
 
 	HWND hwnd = FindWindowA(0, ("AdCap!"));
-	
+
 	// get the pid of the window and place it in pid
 	GetWindowThreadProcessId(hwnd, &pid);
 
 	HANDLE pHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 
 	//get client base addr
-	DWORD clientBase = dwGetModuleBaseAddr(_T(moduleName), pid);
-	
+	DWORD64 clientBase = dwGetModuleBaseAddr(_T(moduleName), pid);
 
 
-	DWORD newMoney;
-	DWORD moneyAddress;
-	DWORD currentMoney = 0;
-	
-	cout << "How much money do you want to add (4 bytes type): ";
+	double newMoney = 0;
+	DWORD64 moneyAddress;
+	double currentMoney = 0;
+
+	cout << "How much money do you want to add to your current balance: ";
 	cin >> newMoney;
+
 	//offset health
-	ReadProcessMemory(pHandle, (LPCVOID)(clientBase + 0x001F50AC), &baseAddress, sizeof(baseAddress), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(baseAddress + 0xc4), &off1, sizeof(off1), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(off1 + 0x50), &off2, sizeof(off2), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(off2 + 0x2c), &off3, sizeof(off3), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(off3 + 0x28), &off4, sizeof(off4), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(clientBase + 0x0039CC58), &baseAddress, sizeof(double), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(baseAddress + 0x80), &off1, sizeof(double), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(off1 + 0x708), &off2, sizeof(double), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(off2 + 0xc8), &off3, sizeof(double), NULL);
+	ReadProcessMemory(pHandle, (LPCVOID)(off3 + 0x28), &off4, sizeof(double), NULL);
 
 	moneyAddress = off4 + 0x18;
 
 	//logic : get the amount we currently have, and then add the new money to it
-	ReadProcessMemory(pHandle, (LPCVOID)(moneyAddress), &currentMoney, 4, NULL);
-	newMoney += currentMoney;
+	ReadProcessMemory(pHandle, (LPCVOID)(moneyAddress), &currentMoney, sizeof(double), NULL);
+	cout << currentMoney;
 
+	newMoney += currentMoney;
 	WriteProcessMemory(pHandle, (LPVOID)(moneyAddress), &newMoney, sizeof(newMoney), 0);
 	
-	
+
 	return 0;
 
 }
