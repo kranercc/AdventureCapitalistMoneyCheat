@@ -1,86 +1,105 @@
-#include <windows.h>
+#include <Windows.h>
 #include <iostream>
-#include <vector>
-#include <TlHelp32.h> 
-#include <tchar.h>
+#include "MemMan.h"
+
+struct myOffsets_t
+{
+	DWORD money = 0x18;
 
 
-DWORD pid;
+}myOffsets;
+
+struct myPlayer_t
+{
+	double money;
+
+
+}myPlayer;
 
 
 
-DWORD64 off1, off2, off3, off4, off5;
-DWORD64 baseAddress;
-char moduleName[] = "mono-2.0-bdwgc.dll";
+MemMan mem;
 
-int valueHealth;
 
-//scan modules find server and copy addrs
-DWORD64 dwGetModuleBaseAddr(TCHAR *lpszModuleName, DWORD64 procid) {
-	//temporary holder
-	DWORD64 baseAddrNow = 0;
-	HANDLE hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, procid);
-	MODULEENTRY32 moduleEntry32 = { 0 };
-	moduleEntry32.dwSize = sizeof(MODULEENTRY32);
+using namespace std;
 
-	if (Module32First(hSnapShot, &moduleEntry32)) {
+void info()
+{
+	cout << "\n\t\t\tPress Space for Info" << endl;
+	cout << "\n\nControls:\n";
+	cout << "\tPress INSERT to select an option !\n";
+	cout << "\tPress 1 => change money \n";
 
-		do {
-			if (_tcscmp(moduleEntry32.szModule, lpszModuleName) == 0) {
 
-				baseAddrNow = (DWORD64)moduleEntry32.modBaseAddr;
+
+}
+
+void addSome(DWORD address, double toWhat)
+{
+	double newAmmount;
+	cout << "Add ammount => ";
+	cin >> newAmmount;
+
+	system("cls");
+	cout << "Added " << newAmmount << endl;
+
+
+	mem.writeMem<double>(address, toWhat + newAmmount);
+}
+int main()
+{
+	system("color 9");
+	cout << "\n\t\t\tPress Space for Info" << endl;
+
+
+	DWORD pid;
+	DWORD gameModule;
+
+	double baseAddr, off1, off2, off3;
+
+
+
+	pid = mem.getProcess("adventure-capitalist.exe");
+	gameModule = mem.getModule(pid, "mono-2.0-bdwgc.dll");
+
+	baseAddr = mem.readMem<DWORD>(gameModule + 0x0039CC30);
+	off1 = mem.readMem<DWORD>(baseAddr + 0x100);
+	off2 = mem.readMem<DWORD>(off1 + 0x6D0);
+	off3 = mem.readMem<DWORD>(off2 + 0x28);
+
+
+
+
+	char userInput[2];
+	while (1)
+	{
+		myPlayer.money = mem.readMem<double>(off3 + myOffsets.money);
+
+		if (GetAsyncKeyState(VK_SPACE))
+		{
+			system("cls");
+			info();
+
+		}
+		
+		if (GetAsyncKeyState(VK_INSERT))
+		{
+			cout << "\nSelect: ";
+			cin >> userInput;
+			switch (userInput[0])
+			{
+			case '1':
+				addSome(off3 + myOffsets.money, myPlayer.money);
 				break;
 
 			}
 
-		} while (Module32Next(hSnapShot, &moduleEntry32));
+		}
+		
 
 
 	}
-	CloseHandle(hSnapShot);
-	return baseAddrNow;
 
-}
-
-
-using namespace std;
-int main() {
-
-	HWND hwnd = FindWindowA(0, ("AdCap!"));
-
-	// get the pid of the window and place it in pid
-	GetWindowThreadProcessId(hwnd, &pid);
-
-	HANDLE pHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-
-	//get client base addr
-	DWORD64 clientBase = dwGetModuleBaseAddr(_T(moduleName), pid);
-
-
-	double newMoney = 0;
-	DWORD64 moneyAddress;
-	double currentMoney = 0;
-
-	cout << "How much money do you want to add to your current balance: ";
-	cin >> newMoney;
-
-	//offset health
-	ReadProcessMemory(pHandle, (LPCVOID)(clientBase + 0x0039CC58), &baseAddress, sizeof(double), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(baseAddress + 0x80), &off1, sizeof(double), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(off1 + 0x708), &off2, sizeof(double), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(off2 + 0xc8), &off3, sizeof(double), NULL);
-	ReadProcessMemory(pHandle, (LPCVOID)(off3 + 0x28), &off4, sizeof(double), NULL);
-
-	moneyAddress = off4 + 0x18;
-
-	//logic : get the amount we currently have, and then add the new money to it
-	ReadProcessMemory(pHandle, (LPCVOID)(moneyAddress), &currentMoney, sizeof(double), NULL);
-	cout << currentMoney;
-
-	newMoney += currentMoney;
-	WriteProcessMemory(pHandle, (LPVOID)(moneyAddress), &newMoney, sizeof(newMoney), 0);
-	
 
 	return 0;
-
 }
