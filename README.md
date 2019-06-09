@@ -1,7 +1,7 @@
 # AdventureCapitalistMoneyCheat
 
 
-# update 29.05.2019
+# update 29.05.2019 - Offsets dosn't work anymore
 ~ Corrected Data Type ( from 4 byte int to double )
 
 
