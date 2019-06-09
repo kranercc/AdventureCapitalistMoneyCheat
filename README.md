@@ -20,4 +20,4 @@
 This will set your money in 4 byte type value with any amount you want
 
 # Funnn
-![alt text]("https://raw.githubusercontent.com/kranercc/AdventureCapitalistMoneyCheat/master/fun.png")
+![alt text](https://raw.githubusercontent.com/kranercc/AdventureCapitalistMoneyCheat/master/fun.png)
