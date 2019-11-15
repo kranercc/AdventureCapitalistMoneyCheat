@@ -1,5 +1,11 @@
 # AdventureCapitalistMoneyCheat
 
+# update 15.11.2019
+![#99ff66](https://placehold.it/15/99ff66/000000?text=+) `- Updated offsets`
+
+
+![#99ff66](https://placehold.it/15/99ff66/000000?text=+) `- Added a c# variant using Memory.dll with GUI`
+
 
 # update 10.06.2019
 ![#99ff66](https://placehold.it/15/99ff66/000000?text=+) `- Updated offsets`
